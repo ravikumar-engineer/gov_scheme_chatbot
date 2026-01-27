@@ -5,8 +5,8 @@ python-dotenv==1.0.1
 streamlit==1.32.2
 
 # LLM (Hugging Face – deployment fallback)
-transformers==4.36.2
-torch==2.1.2
+torch>=2.5.0
+transformers>=4.36.0
 sentencepiece==0.1.99
 
 # Utilities
