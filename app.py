@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 
 # ---------------- ENV ----------------
-load_dotenv()
+load_dotenv()  # Make sure you have HF_TOKEN in .env
 
 # ---------------- HF CLIENT ----------------
 client = InferenceClient(
@@ -34,14 +34,7 @@ with st.sidebar.form(key="user_form"):
     age = st.number_input("Your Age", min_value=18, max_value=100, step=1)
     occupation = st.selectbox(
         "Occupation",
-        (
-            "Student",
-            "Farmer",
-            "Private Job",
-            "Government Job",
-            "Self Employed",
-            "Unemployed"
-        )
+        ("Student", "Farmer", "Private Job", "Government Job", "Self Employed", "Unemployed")
     )
     income = st.number_input("Monthly Income (₹)", min_value=0, step=1000)
     state = st.text_input("State (e.g. Uttar Pradesh)")
@@ -63,18 +56,16 @@ STRICT RULES:
 - Plain text output
 """
 
-    user_prompt = f"""
-User Profile:
-Age: {age}
-Occupation: {occupation}
-Monthly Income: ₹{income}
-State: {state}
-Category: {category}
-
-Task:
-Recommend the most suitable government schemes.
-Explain eligibility, benefits, and application steps.
-"""
+    user_prompt = (
+        f"User Profile:\n"
+        f"Age: {age}\n"
+        f"Occupation: {occupation}\n"
+        f"Monthly Income: ₹{income}\n"
+        f"State: {state}\n"
+        f"Category: {category}\n\n"
+        "Task:\nRecommend the most suitable government schemes.\n"
+        "Explain eligibility, benefits, and application steps."
+    )
 
     response = client.chat_completion(
         inputs=f"{system_prompt}\n{user_prompt}",
@@ -112,22 +103,19 @@ if submitted:
     )
 
     with st.spinner("Thinking like a government officer... 🇮🇳"):
-        response = recommend_schemes(
-            age, occupation, income, state, category
-        )
+        response = recommend_schemes(age, occupation, income, state, category)
 
-    st.session_state.chat_history.append(
-        {"user": user_input, "assistant": response}
-    )
-
+    st.session_state.chat_history.append({"user": user_input, "assistant": response})
     st.chat_message("assistant").markdown(response)
 
 # ---------------- CHATBOX FOR FOLLOW-UP QUESTIONS ----------------
 user_question = st.chat_input("Ask about a scheme...")
 
 if user_question:
-    # Prepare a combined prompt including previous conversation
-    conversation_context = "You are a brutal but helpful Indian Government Scheme Advisor. Be honest and direct. Recommend only REAL Indian government schemes.\n\n"
+    conversation_context = (
+        "You are a brutal but helpful Indian Government Scheme Advisor. "
+        "Be honest and direct. Recommend only REAL Indian government schemes.\n\n"
+    )
 
     for chat in st.session_state.chat_history:
         conversation_context += f"User: {chat['user']}\nAssistant: {chat['assistant']}\n"
@@ -141,10 +129,7 @@ if user_question:
             temperature=0.3
         ).generated_text.strip()
 
-    st.session_state.chat_history.append(
-        {"user": user_question, "assistant": response}
-    )
-
+    st.session_state.chat_history.append({"user": user_question, "assistant": response})
     st.chat_message("assistant").markdown(response)
 
 # ---------------- FOOTER ----------------
