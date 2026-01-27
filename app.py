@@ -51,10 +51,8 @@ with st.sidebar.form(key="user_form"):
 
 # ---------------- CORE FUNCTION ----------------
 def recommend_schemes(age, occupation, income, state, category):
-
     system_prompt = """
 You are a brutal but helpful Indian Government Scheme Advisor.
-
 STRICT RULES:
 - Be honest and direct
 - Clearly explain eligibility or rejection
@@ -79,15 +77,12 @@ Explain eligibility, benefits, and application steps.
 """
 
     response = client.chat_completion(
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        max_tokens=800,
+        inputs=f"{system_prompt}\n{user_prompt}",
+        max_new_tokens=800,
         temperature=0.3
     )
 
-    return response.choices[0].message.content.strip()
+    return response.generated_text.strip()
 
 # ---------------- CLEAR HISTORY ----------------
 if st.sidebar.button("🗑️ Clear Chat History"):
@@ -98,7 +93,6 @@ if st.sidebar.button("🗑️ Clear Chat History"):
 if st.session_state.chat_history:
     st.sidebar.divider()
     st.sidebar.header("Previous Queries")
-
     for idx, chat in enumerate(reversed(st.session_state.chat_history), 1):
         st.sidebar.markdown(f"**Query {idx}:** {chat['user']}")
         st.sidebar.markdown(f"**Response:** {chat['assistant']}")
@@ -107,6 +101,7 @@ if st.session_state.chat_history:
 # ---------------- MAIN CHAT AREA ----------------
 st.divider()
 
+# Initial form submission
 if submitted:
     user_input = (
         f"Age: {age}, "
@@ -123,6 +118,31 @@ if submitted:
 
     st.session_state.chat_history.append(
         {"user": user_input, "assistant": response}
+    )
+
+    st.chat_message("assistant").markdown(response)
+
+# ---------------- CHATBOX FOR FOLLOW-UP QUESTIONS ----------------
+user_question = st.chat_input("Ask about a scheme...")
+
+if user_question:
+    # Prepare a combined prompt including previous conversation
+    conversation_context = "You are a brutal but helpful Indian Government Scheme Advisor. Be honest and direct. Recommend only REAL Indian government schemes.\n\n"
+
+    for chat in st.session_state.chat_history:
+        conversation_context += f"User: {chat['user']}\nAssistant: {chat['assistant']}\n"
+
+    conversation_context += f"User: {user_question}\nAssistant:"
+
+    with st.spinner("Consulting the government database... 🇮🇳"):
+        response = client.chat_completion(
+            inputs=conversation_context,
+            max_new_tokens=800,
+            temperature=0.3
+        ).generated_text.strip()
+
+    st.session_state.chat_history.append(
+        {"user": user_question, "assistant": response}
     )
 
     st.chat_message("assistant").markdown(response)
