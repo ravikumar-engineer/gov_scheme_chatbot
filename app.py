@@ -68,10 +68,11 @@ STRICT RULES:
     )
 
    response = client.chat_completion(
-    prompt=f"{system_prompt}\n{user_prompt}",
-    max_new_tokens=800,
-    temperature=0.3
-   )
+                                   prompt=f"{system_prompt}\n{user_prompt}",
+                                   max_new_tokens=800,
+                                   temperature=0.3
+)
+
 
     return response.generated_text.strip()
 
